@@ -506,36 +506,6 @@ The next step is to complete the country-level profiles and compare them in orde
 * Added model comparison metrics.
 * Added DAX-derived calculations.
 
----
-
-# Repository Structure
-
-```text
-wind_energy_analysis/
-│
-├── data_for_analysis/
-│   └── Data used for analysis
-│
-├── excel_result/
-│   └── Preliminary Excel analysis
-│
-├── results/
-│   └── Analysis results and generated outputs
-│
-├── images/
-│   └── power_bi_country_profile.png
-│
-├── Wind_electricity_analysis.ipynb
-│   └── Python data analysis and EDA
-│
-├── dashboard.pbix
-│   └── Power BI dashboard
-│
-└── README.md
-    └── Project documentation
-```
-
-The repository structure may change as the project develops.
 
 ---
 
