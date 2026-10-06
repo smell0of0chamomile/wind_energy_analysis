@@ -1,6 +1,6 @@
-Конечно. Ниже **чистый `README.md`**, без пояснений вокруг него — можешь целиком скопировать и вставить в файл. Я также учёл актуальное содержимое репозитория: сейчас там уже есть ноутбук, `dashboard.pbix`, `results`, `data_for_analysis` и `excel_result`, поэтому старые формулировки про Python/Power BI как будущие этапы убраны. ([GitHub][1])
+([GitHub][1])
 
-````markdown
+
 # Wind Energy Analysis
 
 ## About the Project
