@@ -1,26 +1,61 @@
+Конечно. Ниже **чистый `README.md`**, без пояснений вокруг него — можешь целиком скопировать и вставить в файл. Я также учёл актуальное содержимое репозитория: сейчас там уже есть ноутбук, `dashboard.pbix`, `results`, `data_for_analysis` и `excel_result`, поэтому старые формулировки про Python/Power BI как будущие этапы убраны. ([GitHub][1])
+
+````markdown
 # Wind Energy Analysis
 
 ## About the Project
 
-This project focuses on investigating the development of wind energy across different countries and exploring the factors that may be associated with its development.
+This project investigates the development of wind energy across countries and explores how it is associated with economic, demographic, social, and institutional indicators.
 
 The main research question is:
 
 > **Why does wind energy develop rapidly in some countries while remaining limited or almost absent in others?**
 
-To investigate this question, data on wind electricity generation are combined with economic, demographic, social, and institutional indicators for different countries.
+To investigate this question, wind electricity generation data is combined with a range of socioeconomic indicators.
 
-The project is not limited to searching for simple linear relationships. It also explores potential non-linear relationships, time effects, and combinations of multiple factors that may not be apparent when individual variables are considered separately.
+The project follows a country-by-country analytical approach. For each country, relationships between wind electricity generation and selected indicators are analysed separately. The results are then used to build a **country profile** describing the type, direction, and strength of the observed relationships.
 
-The analysis does not include the natural and geographical potential of different territories, such as terrain characteristics, climatic conditions, or actual wind resources. Therefore, the results should be interpreted as an analysis of statistical patterns rather than a complete causal explanation of wind energy development.
+The final stage of the project will bring these country profiles together in order to identify common patterns, differences, and broader international trends.
+
+The analysis is exploratory and focuses on statistical relationships rather than causal inference.
 
 ---
 
-## Research Objectives
+## Research Approach
 
-The main objective of the project is to investigate the relationship between wind energy development and the socioeconomic characteristics of countries.
+The project follows a bottom-up analytical approach:
 
-The analysis addresses the following questions:
+```text
+Data Preparation
+       ↓
+SQL / DuckDB
+       ↓
+Preliminary Exploration
+       ↓
+Python EDA
+       ↓
+Country-Level Analysis
+       ↓
+Country Profiles
+       ↓
+Cross-Country Comparison
+       ↓
+Broader Trends & Conclusions
+       ↓
+Power BI Dashboard
+````
+
+The central idea is to avoid assuming that a relationship observed across all countries necessarily exists within every individual country.
+
+Instead, the project first examines individual countries and then compares their profiles to identify broader patterns.
+
+---
+
+## Research Questions
+
+The analysis focuses on relationships between wind electricity generation and several socioeconomic indicators.
+
+The main questions include:
 
 * Is wind electricity generation associated with economic development?
 * How is wind energy development related to human development?
@@ -28,131 +63,139 @@ The analysis addresses the following questions:
 * Is wind energy development associated with urbanization?
 * Is there a relationship with life expectancy?
 * Is wind energy development associated with internet usage?
-* Is there a relationship between wind energy development and the quality of governance?
-* Do non-linear relationships exist between the variables under consideration?
-* Can changes in some indicators precede changes in wind energy development?
+* Is wind energy development related to the quality of governance?
+* What type of relationship can be observed within individual countries?
+* Do relationships differ substantially between countries?
+* Which patterns appear repeatedly across countries?
+* Which relationships appear to be country-specific?
+* Can country profiles be grouped into broader patterns?
 
-The project therefore does not aim to identify a single factor that explains wind energy development. Instead, it aims to identify a combination of patterns and relationships in international data.
+The project does not aim to identify a single universal factor explaining wind energy development.
+
+Instead, the goal is to identify and compare different statistical patterns across countries.
 
 ---
 
-## Data
+# Data
 
-The main data source is **Our World in Data (OWID)**.
+The main wind energy data comes from **Our World in Data (OWID)**.
 
-The primary wind energy indicator used in the analysis is:
+The primary target variable is:
 
 * `wind_electricity` — electricity generation from wind, measured in TWh.
 
-The OWID dataset also provides:
+The dataset also contains:
 
-* `GDP`;
-* `population`.
+* GDP
+* population
 
-Additional indicators were collected from other sources:
+Additional socioeconomic indicators were collected from other sources, including the World Bank and United Nations Development Programme.
 
-GDP — Our World in Data
-population — Our World in Data
-life_expectancy — World Bank
-population_density — World Bank
-urbanization — World Bank
-control_of_corruption — World Bank Worldwide Governance Indicators
-HDI — United Nations Development Programme
-internet_users — World Bank
+### Main Variables
 
-The resulting dataset combines wind electricity generation with economic, demographic, social, and institutional characteristics of countries.
+| Variable             | Description                            |
+| -------------------- | -------------------------------------- |
+| `country`            | Country name                           |
+| `iso_code`           | Country identifier                     |
+| `year`               | Year                                   |
+| `wind_electricity`   | Electricity generation from wind       |
+| `gdp`                | GDP                                    |
+| `population`         | Population                             |
+| `hdi`                | Human Development Index                |
+| `population_density` | Population density                     |
+| `urbanization`       | Urbanization rate                      |
+| `life_expectancy`    | Life expectancy                        |
+| `network`            | Share of population using the internet |
+| `corruption`         | Control of Corruption indicator        |
 
 ---
 
-## Data Preparation
+# Data Preparation
 
-The initial structure of the raw dataset was explored using Python.
+The initial structure of the raw data was explored using Python.
 
-DuckDB / SQL was then used for more detailed data inspection and preprocessing.
+DuckDB / SQL was then used for more detailed data inspection, cleaning, and integration of multiple data sources.
 
 Particular attention was given to missing values in `wind_electricity`.
 
-A missing value in wind electricity generation does not necessarily mean zero generation. It may instead indicate that the corresponding observation is unavailable.
+A missing value does not necessarily mean zero wind generation. It may instead indicate that the corresponding observation is unavailable.
 
-Therefore, missing values were not automatically replaced with zeros.
+Therefore, missing values were not automatically replaced with zero.
 
-To determine when such a replacement could reasonably be made, the first observed positive value of wind electricity generation was identified for each country, together with its share of global wind generation in the corresponding year.
+A practical heuristic was developed using the first observed positive wind generation value for each country and its share of global wind generation in the corresponding year.
 
-A working heuristic threshold of **0.1% of global generation** was then selected.
+A working threshold of **0.1% of global generation** was used to identify cases where preceding missing values could reasonably be interpreted as zero.
 
-Countries whose first observed positive value accounted for less than 0.1% of global generation in the corresponding year were considered candidates for replacing preceding missing values with zero.
-
-The 0.1% threshold is not a statistically derived universal criterion. It was selected after inspecting the distribution of the data as a practical boundary below which the first observed value was likely to represent a very small amount of generation.
-
-For other ambiguous cases, missing values were retained rather than introducing potentially unjustified assumptions into the dataset.
+This threshold is a practical assumption rather than a universal statistical rule. Ambiguous cases were retained as missing rather than introducing potentially unjustified assumptions.
 
 ---
 
 ## Historical and Special Entities
 
-During data preparation, several countries and historical entities were identified for which `iso_code` was missing from the original dataset.
+During data preparation, several countries and historical entities required additional handling because of missing or inconsistent country identifiers.
 
-The following entities were handled separately:
+These included:
 
-* Kosovo;
-* Czechoslovakia;
-* East Germany;
-* West Germany;
-* USSR;
-* Yugoslavia;
-* Serbia and Montenegro.
+* Kosovo
+* Czechoslovakia
+* East Germany
+* West Germany
+* USSR
+* Yugoslavia
+* Serbia and Montenegro
 
-Appropriate identifiers were assigned to these entities to allow them to be matched with additional datasets.
-
----
-
-## Data Integration
-
-To combine the different sources, the datasets were converted to a common country-year format.
-
-`iso_code` was primarily used as the country identifier, allowing indicators from different sources to be matched without relying on differences in country naming conventions.
-
-The resulting integrated dataset was stored as `analysis_data`.
-
-The main variables include:
-
-country — country name
-iso_code — country code
-year — year
-wind_electricity — wind electricity generation
-gdp — GDP
-population — population
-hdi — Human Development Index
-population_density — population density
-urbanization — urbanization rate
-life_expectancy — life expectancy
-network — share of the population using the internet
-corruption — Control of Corruption indicator
+Additional identifiers were assigned where necessary so that these entities could be matched with other datasets.
 
 ---
 
-## Workflow
+# Data Integration
 
-The project is being developed in several stages.
+The different sources were converted into a common **country-year** structure.
 
-### 1. Python — Initial Exploration
+`iso_code` was primarily used as the country identifier in order to match indicators across datasets without relying on differences in country naming conventions.
 
-Python was used to initially inspect the structure of the raw dataset, the number of countries and years, missing values, and the main characteristics of the data.
+The integrated dataset is stored as:
 
-### 2. SQL / DuckDB — Data Processing
+```text
+analysis_data
+```
 
-DuckDB was used for:
+This dataset forms the basis for the subsequent exploratory and statistical analysis.
 
-* detailed exploration of the raw data;
-* checking missing values;
+---
+
+# Analytical Workflow
+
+## 1. Python — Initial Exploration
+
+Python was initially used to inspect:
+
+* dataset structure;
+* number of countries and years;
+* missing values;
+* variable distributions;
+* basic characteristics of the data.
+
+This stage was used to understand the dataset before more detailed processing.
+
+---
+
+## 2. SQL / DuckDB — Data Processing
+
+DuckDB / SQL was used for:
+
+* detailed data inspection;
+* missing-value analysis;
 * working with country-year observations;
-* identifying cases where missing values could be replaced with zero;
-* creating cleaned datasets;
-* integrating multiple data sources.
+* cleaning wind electricity data;
+* integrating multiple data sources;
+* preparing the datasets used in further analysis.
 
-### 3. Excel — Exploratory Analysis
+---
 
-Excel was used for preliminary exploration of the resulting dataset.
+## 3. Excel — Preliminary Exploration
+
+Excel was used for an early exploratory analysis of the integrated dataset.
 
 This stage focused on:
 
@@ -162,131 +205,398 @@ This stage focused on:
 * potential non-linear relationships;
 * identifying directions for further statistical analysis.
 
-Excel is used as a tool for preliminary exploration and hypothesis generation rather than as the primary statistical analysis tool.
-
-### 4. Python — Advanced Analysis
-
-Python will be used for more detailed statistical analysis.
-
-The next stage will investigate both simple and more complex relationships between wind energy development and the selected factors.
-
-Planned methods include:
-
-* correlation analysis;
-* linear models;
-* polynomial and other non-linear models;
-* residual analysis;
-* multivariable regression;
-* accounting for differences between countries and years;
-* analysis of time effects and lags;
-* Random Forest;
-* XGBoost;
-* SHAP for model interpretation.
-
-### 5. Power BI — Final Visualization
-
-Power BI will be used to present the final results as an interactive dashboard.
+Excel is primarily used for preliminary exploration and hypothesis generation rather than as the main statistical analysis environment.
 
 ---
 
-## Preliminary Analysis
+## 4. Python — Exploratory Data Analysis
 
-A preliminary exploratory analysis was conducted in Excel using scatter plots and polynomial trendlines.
+Python is currently used for more detailed exploratory data analysis.
 
-The results suggest that the relationship between wind electricity generation and several socioeconomic and demographic variables may have a pronounced non-linear pattern.
+The analysis investigates relationships between wind electricity generation and selected socioeconomic indicators.
 
-For **GDP**, **life expectancy**, and **HDI**, the relationship appears strongly curved and increasing. The polynomial trendlines produce the following R² values:
+A major development of the project is the transition from analysing the dataset only as a whole to analysing **individual countries separately**.
 
-| Indicator       | Polynomial model R² |
-| --------------- | ------------------: |
-| GDP             |               0.947 |
-| Life expectancy |               0.914 |
-| HDI             |               0.940 |
+For each country, the analysis examines:
 
-This suggests that a simple linear model may not adequately describe the observed relationship between these indicators and wind electricity generation.
+* the strength of relationships;
+* the direction of relationships;
+* linear relationships;
+* non-linear relationships;
+* the performance of different models;
+* the improvement obtained from non-linear models;
+* the best-performing model for each indicator.
 
-For **population density**, the relationship appears closer to linear. The quadratic model provides only a small improvement in fit, with an R² of **0.909**. Therefore, both linear and non-linear specifications should be compared for this variable during the next stage of the analysis.
-
-**Urbanization** shows a considerably weaker relationship with wind electricity generation, with an R² of approximately **0.229**. The plot also shows a pronounced increase at lower levels of urbanization, suggesting that the overall relationship may be influenced by a particular range of observations.
-
-Overall, the preliminary analysis suggests that **a single linear model is unlikely to adequately describe all of the relationships under investigation**.
-
-These results are preliminary. R² indicates how well a particular model describes variation in the given dataset, but it does not by itself establish a causal relationship between the corresponding variables.
+The current analysis compares linear, quadratic, and cubic polynomial models.
 
 ---
 
-## Planned Statistical Analysis
+# Country Profiles
 
-The next stage of the project will include:
+A central part of the project is the creation of a **country profile**.
 
-* calculating correlations between variables;
-* comparing linear and polynomial models;
-* performing residual analysis and assessing model adequacy;
-* building multivariable regression models;
-* accounting for differences between countries and years;
-* investigating potential time effects and lags;
-* comparing classical statistical models with machine learning approaches;
-* using SHAP to interpret model results.
+A country profile summarizes the relationships observed between wind electricity generation and the selected indicators for a particular country.
 
-Particular attention will be given to the fact that observations from the same country across different years are not fully independent. Therefore, the country-year structure of the data and potential differences between countries and time periods will need to be considered in the subsequent analysis.
+For each factor, the analysis currently considers:
 
-All results from this stage will be treated as **exploratory rather than causal**.
+* number of observations (`N`);
+* linear model R²;
+* quadratic model R²;
+* cubic model R²;
+* RMSE;
+* cross-validation RMSE;
+* non-linear improvement;
+* relationship direction;
+* best-performing model.
 
----
+The purpose of the country profile is to provide a structured description of how different indicators are related to wind energy development within a particular country.
 
-## Limitations
+For example, a profile may show that:
 
-The study has several important limitations.
+* GDP is better described by a cubic relationship than by a linear model;
+* internet usage has a strong non-linear relationship;
+* corruption has a weaker relationship;
+* some indicators show only a limited improvement when moving from a linear to a non-linear model.
 
-First, a statistical association between variables does not imply a causal relationship. Observed relationships should therefore be interpreted as statistical patterns rather than evidence of causation.
-
-Second, the analysis does not include many physical and geographical factors that directly affect the potential for wind energy development. These include terrain characteristics, climatic conditions, and the actual wind resource of a territory.
-
-Third, the final dataset combines several different sources, so the completeness and comparability of individual indicators may vary across countries and years.
-
-In addition, the absolute amount of wind electricity generation may be related to the size of a country and its economy. Therefore, additional normalized indicators may be required during the analysis, such as wind generation per capita or the share of wind power in total electricity generation.
-
-The purpose of the project is therefore not to provide a complete causal explanation of wind energy development, but to identify statistical patterns and potential relationships in international data.
+These results describe statistical relationships in the available data. They should not be interpreted as evidence that a particular factor directly causes changes in wind energy generation.
 
 ---
 
-## Project Status
+# Power BI Dashboard
 
-The project is currently under development.
+Power BI is used as the interactive visualization layer of the project.
 
-### Completed
+The dashboard allows the user to select a country and explore its individual wind energy relationship profile.
 
-* explored the structure of the raw dataset;
-* cleaned the wind electricity generation data;
-* handled missing `iso_code` values;
-* developed an approach for handling missing wind generation values;
-* prepared the `wind_data` table;
-* prepared additional indicators from external sources;
-* integrated the datasets into `analysis_data`;
-* conducted preliminary exploratory analysis in Excel;
-* identified preliminary signs of non-linear relationships between wind generation and several indicators.
+![Power BI Country Profile](images/power_bi_country_profile.png)
 
-### Next Steps
+### Current Dashboard
 
-* conduct advanced statistical analysis in Python;
-* compare linear and non-linear models;
-* investigate country and year effects;
-* evaluate machine learning models;
-* interpret model results;
-* build the final Power BI dashboard.
+The current dashboard contains:
+
+* country selection;
+* ranking of indicators by the best R² achieved;
+* comparison of linear and polynomial models;
+* model performance metrics;
+* RMSE and cross-validation RMSE;
+* non-linear improvement;
+* relationship direction;
+* identification of the best-performing model.
+
+The main visualization ranks the analysed factors according to the best R² achieved among the tested models.
+
+The detailed table allows the different model specifications to be compared for each factor.
+
+For example, for Canada, the current analysis shows:
+
+| Factor             | Best R² | Best Model   |
+| ------------------ | ------: | ------------ |
+| Network            |    0.95 | Polynomial 3 |
+| Urbanization       |    0.93 | Polynomial 3 |
+| GDP                |    0.92 | Polynomial 3 |
+| HDI                |    0.92 | Polynomial 3 |
+| Population density |    0.91 | Polynomial 3 |
+| Life expectancy    |    0.74 | Polynomial 3 |
+| Corruption         |    0.60 | Polynomial 2 |
+
+The dashboard is intended to make these country-level results easier to explore and interpret.
+
+The exact classification of relationships and the dashboard structure may change as the analytical methodology develops.
 
 ---
 
-## Project Structure
+# Cross-Country Comparison
 
-The repository structure will be expanded as the project develops.
+The country profiles are not the final goal of the project.
 
-The main components of the project include:
+After individual country profiles have been developed, they will be compared with one another.
 
-* raw data;
-* cleaned data;
-* Jupyter Notebook for data processing;
-* analysis results;
-* Python analysis;
-* Power BI dashboard;
-* project documentation.
+The purpose of this stage is to move from:
+
+> **What happens in this country?**
+
+to:
+
+> **What patterns appear across countries?**
+
+The comparison will investigate:
+
+* relationships that appear consistently across many countries;
+* relationships that are specific to particular countries;
+* countries with similar profiles;
+* countries with substantially different profiles;
+* possible regional patterns;
+* possible development-level patterns;
+* indicators that show similar relationships across different countries;
+* relationships that change substantially between countries.
+
+The final conclusions will be based on the comparison of these country-level results.
+
+---
+
+# Preliminary Findings
+
+An early exploratory analysis suggested that the relationship between wind electricity generation and several socioeconomic indicators may be substantially non-linear when countries are considered together.
+
+For example, preliminary polynomial fits produced relatively high R² values for several indicators:
+
+| Indicator          | Preliminary Polynomial R² |
+| ------------------ | ------------------------: |
+| GDP                |                     0.947 |
+| Life expectancy    |                     0.914 |
+| HDI                |                     0.940 |
+| Population density |                     0.909 |
+| Urbanization       |                    ~0.229 |
+
+These results were obtained during the preliminary exploratory stage.
+
+They should not be interpreted as causal relationships.
+
+More importantly, these global relationships do not necessarily imply that the same relationship exists within every individual country.
+
+This observation motivated the transition toward country-level analysis.
+
+---
+
+# Limitations
+
+## Statistical Association Is Not Causation
+
+A statistical relationship does not demonstrate that one variable causes changes in wind energy development.
+
+A high R² only indicates that a particular model describes a substantial part of the observed variation in the data.
+
+## Country-Level Relationships May Differ
+
+A relationship visible in the full international dataset may be caused by differences between countries rather than by changes occurring within individual countries.
+
+This is why country-level analysis is an important part of the project.
+
+## Missing Geographical and Physical Factors
+
+The current analysis does not include many factors directly related to the physical potential for wind energy, such as:
+
+* wind resource availability;
+* terrain;
+* climate;
+* geographical characteristics;
+* land availability.
+
+Therefore, the project does not attempt to provide a complete explanation of why wind energy develops differently between countries.
+
+## Data Availability
+
+The integrated dataset combines several sources.
+
+The availability and comparability of individual indicators may therefore vary across countries and years.
+
+## Scale Effects
+
+Absolute wind electricity generation is naturally influenced by the size of a country's population and economy.
+
+Future stages may therefore consider normalized indicators such as:
+
+* wind generation per capita;
+* wind generation as a share of total electricity generation;
+* wind generation relative to GDP;
+* wind capacity relative to population.
+
+---
+
+# Project Status
+
+The project is actively being developed.
+
+## Completed
+
+* [x] Explored the structure of the raw dataset
+* [x] Investigated missing wind electricity values
+* [x] Developed a practical approach for handling ambiguous missing values
+* [x] Handled historical and special entities with missing identifiers
+* [x] Prepared the wind energy dataset
+* [x] Collected additional socioeconomic indicators
+* [x] Integrated multiple datasets into `analysis_data`
+* [x] Conducted preliminary exploratory analysis in Excel
+* [x] Identified preliminary non-linear patterns
+* [x] Expanded the Python notebook with exploratory data analysis
+* [x] Started country-level analysis
+* [x] Developed the first version of country profiles
+* [x] Started the Power BI dashboard
+* [x] Added DAX calculations to the dashboard
+
+## In Progress
+
+* [ ] Refine country-level relationship analysis
+* [ ] Define a consistent methodology for classifying relationship types
+* [ ] Complete country profiles
+* [ ] Improve model validation
+* [ ] Compare country profiles
+* [ ] Identify recurring international patterns
+* [ ] Investigate country-specific differences
+* [ ] Improve the Power BI dashboard
+* [ ] Add cross-country analytical views
+* [ ] Formulate broader conclusions
+
+## Planned
+
+* [ ] Compare additional model specifications where appropriate
+* [ ] Perform residual analysis
+* [ ] Evaluate model adequacy
+* [ ] Investigate time effects and potential lags
+* [ ] Consider multivariable models
+* [ ] Explore normalized wind-energy indicators
+* [ ] Investigate clustering or other approaches for comparing country profiles
+* [ ] Evaluate machine-learning approaches where they provide additional value
+* [ ] Interpret the final results
+* [ ] Summarize the main findings across countries
+
+---
+
+# Project Progress
+
+This section is maintained as a chronological development log.
+
+New milestones can be added here without rewriting the rest of the README.
+
+### 2026-10-07 — Country-Level EDA and Power BI Profile
+
+Expanded the Python analysis toward country-level exploratory analysis.
+
+The current workflow analyses relationships between wind electricity generation and socioeconomic indicators separately for each country.
+
+Started developing a structured country profile containing:
+
+* model performance;
+* relationship direction;
+* non-linear improvement;
+* best-performing model;
+* comparison between linear and polynomial specifications.
+
+The first version of the Power BI dashboard was also developed to provide an interactive view of these country profiles.
+
+The next step is to complete the country-level profiles and compare them in order to identify recurring and country-specific patterns.
+
+---
+
+### Previous Progress
+
+#### Data Preparation
+
+* Integrated wind energy data with socioeconomic indicators.
+* Investigated missing values and developed a practical approach for ambiguous observations.
+* Standardized datasets using a country-year structure.
+* Used country identifiers to integrate data from different sources.
+
+#### Preliminary Exploration
+
+* Used Excel to explore relationships between wind electricity generation and socioeconomic variables.
+* Identified indications of non-linear relationships.
+* Used these observations to define directions for further analysis.
+
+#### Python Analysis
+
+* Expanded the analysis from preliminary exploration to detailed EDA.
+* Began analysing individual countries separately.
+* Started comparing linear and polynomial relationships.
+* Began developing country-level analytical profiles.
+
+#### Power BI
+
+* Created the first version of the interactive country profile dashboard.
+* Added country selection.
+* Added factor ranking by best R².
+* Added model comparison metrics.
+* Added DAX-derived calculations.
+
+---
+
+# Repository Structure
+
+```text
+wind_energy_analysis/
+│
+├── data_for_analysis/
+│   └── Data used for analysis
+│
+├── excel_result/
+│   └── Preliminary Excel analysis
+│
+├── results/
+│   └── Analysis results and generated outputs
+│
+├── images/
+│   └── power_bi_country_profile.png
+│
+├── Wind_electricity_analysis.ipynb
+│   └── Python data analysis and EDA
+│
+├── dashboard.pbix
+│   └── Power BI dashboard
+│
+└── README.md
+    └── Project documentation
+```
+
+The repository structure may change as the project develops.
+
+---
+
+# Tools
+
+The project currently uses:
+
+* **SQL / DuckDB** — data inspection, cleaning, and integration
+* **Python** — exploratory data analysis and statistical analysis
+* **Pandas** — data manipulation
+* **Matplotlib / Seaborn** — visualization
+* **Excel** — preliminary exploration and hypothesis generation
+* **Power BI** — interactive dashboard development
+* **DAX** — calculated columns and measures
+
+---
+
+# Interpretation
+
+The project follows a layered analytical approach:
+
+```text
+Global Dataset
+      ↓
+Individual Countries
+      ↓
+Country Profiles
+      ↓
+Cross-Country Comparison
+      ↓
+Common & Country-Specific Patterns
+      ↓
+Broader Conclusions
+```
+
+The country profile is therefore not the final result.
+
+It is an intermediate analytical layer that allows the project to move from individual country observations toward broader conclusions about wind energy development.
+
+The final interpretation will be developed after a sufficient number of country profiles have been analysed and compared.
+
+---
+
+# Project Goal
+
+The long-term goal is to build a reproducible analytical workflow for investigating how wind energy development is associated with socioeconomic conditions across countries.
+
+The final project should combine:
+
+**Data Preparation → Exploratory Analysis → Country Profiles → Cross-Country Comparison → Statistical Interpretation → Interactive Visualization**
+
+The expected final outcome is a structured analysis of both:
+
+* **common patterns** that appear across multiple countries;
+* **country-specific patterns** that distinguish individual countries.
+
+The project is intended as an exploratory analytical study rather than a causal model of wind energy development.
+
+```
+```
+
+[1]: https://github.com/smell0of0chamomile/wind_energy_analysis "GitHub - smell0of0chamomile/wind_energy_analysis · GitHub"
