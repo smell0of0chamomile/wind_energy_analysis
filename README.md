@@ -1,5 +1,3 @@
-([GitHub][1])
-
 
 # Wind Energy Analysis
 
@@ -268,7 +266,7 @@ Power BI is used as the interactive visualization layer of the project.
 
 The dashboard allows the user to select a country and explore its individual wind energy relationship profile.
 
-![Power BI Country Profile](images/power_bi_country_profile.png)
+![Power BI Country Profile](power bi/example_profile.png)
 
 ### Current Dashboard
 
