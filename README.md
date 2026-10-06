@@ -456,7 +456,7 @@ This section is maintained as a chronological development log.
 
 New milestones can be added here without rewriting the rest of the README.
 
-### 2026-10-07 — Country-Level EDA and Power BI Profile
+### 2026-10-01 — Country-Level EDA and Power BI Profile
 
 Expanded the Python analysis toward country-level exploratory analysis.
 
